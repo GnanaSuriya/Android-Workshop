@@ -1,30 +1,17 @@
-# Android Club Workshop Registration App
+# Android Workshop Web
 
-A native Android application built with Jetpack Compose and Kotlin for the Android Club workshop registration and attendance management system.
+This is a web rewrite of the Android Workshop application, developed for an Android Development Workshop to handle registration and attendance verification using digital QR passes.
 
-## Features
-- 🎨 **Aurora Glass & Modern Dark UI**: Sleek dark space aesthetic with glowing radial aurora gradients and glassmorphic translucent cards.
-- 📋 **Workshop Registration Form**: Live input validation for Full Name, Email, Phone, College, Department, and Year of study.
-- 🆔 **Unique Registration ID Generator**: Automatically generates unique registration IDs formatted as `REG-XXXXXX`.
-- 📱 **Native QR Code Generation**: High-resolution, offline QR code generation using ZXing.
-- 🎫 **Digital QR Pass**: Ticket layout with participant details, workshop schedule, and scannable QR pass.
-- 📤 **Android Integrations**: Native Share Intent to share passes and Calendar Contract integration to add the event to Google Calendar.
-- 🛡️ **Coordinator Attendance Panel**:
-  - **Scan QR**: Camera viewfinder with animated scanning line and instant test scanner.
-  - **Manual Validation**: Direct registration ID verification.
-  - **Live Participant List**: Searchable list with live stats (Total, Checked In, Pending).
-  - **Attendance Status**: Instant feedback for marked attendance, duplicate check-in warnings, and invalid IDs.
-- 💾 **Local Persistence**: SQLite database storing registrations and attendance status offline.
+## Features Preserved
 
-## Tech Stack
-- Kotlin 2.1
-- Jetpack Compose with Material 3
-- Android Architecture Components (ViewModel, StateFlow, Coroutines)
-- ZXing Core for QR code generation
-- SQLite for local persistence
+-   **Registration:** Participants can register for the workshop providing details like name, email, phone, college, department, and year of study.
+-   **Digital Pass Generation:** A digital pass with a unique QR code is generated upon successful registration.
+-   **Coordinator Tools:** A panel to manually verify registration using a REG-ID or search from the participant list, with QR scan visually simulated.
+-   **Data Persistence:** Uses the browser's `localStorage` as an in-memory database to persist registration data across sessions.
+-   **Aurora Theme:** The styling mimics the original Android application's `AuroraBackground` and `GlassCard` effects using Tailwind CSS and Framer Motion for smooth transitions.
 
-## Architecture
-- `MainActivity`: Single-activity architecture with animated Compose screen transitions.
-- `WorkshopViewModel`: State management and reactive business logic.
-- `RegistrationRepository` & `WorkshopDatabaseHelper`: Thread-safe database operations.
-- `ui/screens`: Composable screens for Landing, Form, Success, Digital Pass, Coordinator, and Attendance Result.
+## Running Locally
+
+1.  Clone the repository.
+2.  Install dependencies: `npm install`
+3.  Start the development server: `npm run dev`
