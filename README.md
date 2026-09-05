@@ -1,42 +1,30 @@
 # Android Club Workshop Registration App
 
-A fully functional mobile-first web application for Android Club workshop registration.
+A native Android application built with Jetpack Compose and Kotlin for the Android Club workshop registration and attendance management system.
 
 ## Features
-- 🎨 Aurora Glass / Glassmorphism design matching Figma reference
-- 📋 Workshop registration form with live validation
-- 🆔 Unique registration ID generation
-- 📱 Real QR code generation (unique per participant)
-- 🎫 Digital QR pass (premium ticket design)
-- ✅ Coordinator attendance marking panel
-- 🚫 Duplicate check-in prevention
-- 💾 localStorage persistence
-
-## Screens
-1. **Landing** – Workshop info & Register Now CTA
-2. **Registration Form** – Full Name, Email, Phone, College, Department, Year
-3. **Registration Success** – Confirmation + QR pass preview
-4. **Digital QR Pass** – Premium ticket card with scannable QR
-5. **Coordinator Panel** – Scan QR / Manual entry / Registration list → Attendance Marked
+- 🎨 **Aurora Glass & Modern Dark UI**: Sleek dark space aesthetic with glowing radial aurora gradients and glassmorphic translucent cards.
+- 📋 **Workshop Registration Form**: Live input validation for Full Name, Email, Phone, College, Department, and Year of study.
+- 🆔 **Unique Registration ID Generator**: Automatically generates unique registration IDs formatted as `REG-XXXXXX`.
+- 📱 **Native QR Code Generation**: High-resolution, offline QR code generation using ZXing.
+- 🎫 **Digital QR Pass**: Ticket layout with participant details, workshop schedule, and scannable QR pass.
+- 📤 **Android Integrations**: Native Share Intent to share passes and Calendar Contract integration to add the event to Google Calendar.
+- 🛡️ **Coordinator Attendance Panel**:
+  - **Scan QR**: Camera viewfinder with animated scanning line and instant test scanner.
+  - **Manual Validation**: Direct registration ID verification.
+  - **Live Participant List**: Searchable list with live stats (Total, Checked In, Pending).
+  - **Attendance Status**: Instant feedback for marked attendance, duplicate check-in warnings, and invalid IDs.
+- 💾 **Local Persistence**: SQLite database storing registrations and attendance status offline.
 
 ## Tech Stack
-- Vanilla HTML, CSS, JavaScript
-- [qrcodejs](https://github.com/davidshimjs/qrcodejs) for QR generation
-- [jsQR](https://github.com/cozmo/jsQR) for camera QR scanning
-- Google Fonts (Inter + Space Grotesk)
+- Kotlin 2.1
+- Jetpack Compose with Material 3
+- Android Architecture Components (ViewModel, StateFlow, Coroutines)
+- ZXing Core for QR code generation
+- SQLite for local persistence
 
-## Files
-| File | Purpose |
-|------|---------|
-| `index.html` | Main SPA entry point |
-| `styles.css` | Aurora Glass design system |
-| `app.js` | Full application logic |
-| `verify.html` | Standalone QR verification page |
-| `vercel.json` | Vercel deployment config |
-
-## Usage
-Open `index.html` in any modern browser — no build step required.
-
-### Coordinator Note
-For camera QR scanning, the page must be served over HTTPS (Vercel provides this automatically).  
-When testing locally, use the **Manual** tab in the Coordinator Panel to enter Registration IDs.
+## Architecture
+- `MainActivity`: Single-activity architecture with animated Compose screen transitions.
+- `WorkshopViewModel`: State management and reactive business logic.
+- `RegistrationRepository` & `WorkshopDatabaseHelper`: Thread-safe database operations.
+- `ui/screens`: Composable screens for Landing, Form, Success, Digital Pass, Coordinator, and Attendance Result.

@@ -1,0 +1,8 @@
+{
+  "name": "Android Workshop",
+  "description": "Android Development Workshop registration and attendance verification with digital QR pass.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
