@@ -4,18 +4,18 @@ export default async function handler(req, res) {
   const { id } = req.body;
   if (!id) return res.status(400).json({ error: 'Missing ID' });
 
-  const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
-  const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const KV_URL = process.env.KV_REST_API_URL;
+  const KV_TOKEN = process.env.KV_REST_API_TOKEN;
 
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) {
+  if (!KV_URL || !KV_TOKEN) {
     return res.status(500).json({ error: 'Database environment variables missing' });
   }
 
   try {
     // Fetch existing
-    const getRes = await fetch(UPSTASH_URL, {
+    const getRes = await fetch(KV_URL, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(['GET', `reg:${id}`])
     });
     const getResult = await getRes.json();
@@ -29,9 +29,9 @@ export default async function handler(req, res) {
     data.checkedIn = true;
     data.checkInTime = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
 
-    const setRes = await fetch(UPSTASH_URL, {
+    const setRes = await fetch(KV_URL, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(['SET', `reg:${id}`, JSON.stringify(data)])
     });
     

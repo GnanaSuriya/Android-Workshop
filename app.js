@@ -61,11 +61,28 @@ const DB = {
   },
 
   async register(participant) {
-    await fetch('/api/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(participant)
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(participant),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      const data = await res.json().catch(() => null);
+      if (!res.ok || !data || !data.success) {
+        throw new Error((data && data.error) ? data.error : 'Registration service unavailable');
+      }
+      return data;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        throw new Error('Registration service unavailable');
+      }
+      throw err;
+    }
   },
 
   async getById(id) {
@@ -105,12 +122,17 @@ let state = {
 // ============================================================
 //  UNIQUE ID GENERATOR
 // ============================================================
-function generateRegId() {
+async function generateRegId() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const rand = (n) => Array.from({ length: n }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
   const randN = (n) => Array.from({ length: n }, () => Math.floor(Math.random() * 10)).join('');
-  const id = `REG-${rand(2)}${randN(1)}${rand(2)}${randN(2)}`;
-  return DB.getById(id) ? generateRegId() : id;
+  let id;
+  let exists = true;
+  while (exists) {
+    id = `REG-${rand(2)}${randN(1)}${rand(2)}${randN(2)}`;
+    exists = await DB.getById(id);
+  }
+  return id;
 }
 
 // ============================================================
@@ -907,9 +929,10 @@ function init() {
     btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing…`;
     btn.disabled = true;
 
-    setTimeout(async () => {
+    try {
+      const regId = await generateRegId();
       const reg = {
-        id:           generateRegId(),
+        id:           regId,
         name:         document.getElementById('f-name').value.trim(),
         email:        document.getElementById('f-email').value.trim(),
         phone:        document.getElementById('f-phone').value.trim(),
@@ -921,8 +944,9 @@ function init() {
         registeredAt: new Date().toISOString(),
       };
 
-      await DB.register(reg);
-      state.registration = reg;
+      const response = await DB.register(reg);
+      const savedReg = response.registration || reg;
+      state.registration = savedReg;
 
       // Remove old screens if any
       ['screen-success', 'screen-pass'].forEach(id => {
@@ -931,8 +955,8 @@ function init() {
       });
 
       // Build fresh screens
-      app.insertAdjacentHTML('beforeend', buildSuccess(reg));
-      app.insertAdjacentHTML('beforeend', buildPass(reg));
+      app.insertAdjacentHTML('beforeend', buildSuccess(savedReg));
+      app.insertAdjacentHTML('beforeend', buildPass(savedReg));
 
       // Navigate to success
       document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -942,12 +966,19 @@ function init() {
 
       // Render QR
       setTimeout(() => {
-        renderQR('qr-success', buildVerifyUrl(reg), 180);
+        renderQR('qr-success', buildVerifyUrl(savedReg), 180);
       }, 100);
 
+    } catch (error) {
+      if (error.message === 'Registration service unavailable') {
+        alert("REGISTRATION SERVICE UNAVAILABLE\n\nPlease try again.");
+      } else {
+        alert("REGISTRATION FAILED\n\nUnable to complete registration.\nPlease try again.");
+      }
+    } finally {
       btn.innerHTML = `${icon('android', 18)} COMPLETE REGISTRATION`;
       btn.disabled = false;
-    }, 700);
+    }
   });
 
   // Live field validation — only after user touches the field

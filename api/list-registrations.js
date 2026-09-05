@@ -1,8 +1,8 @@
 export default async function handler(req, res) {
-  const UPSTASH_URL = process.env.UPSTASH_REDIS_REST_URL;
-  const UPSTASH_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const KV_URL = process.env.KV_REST_API_URL;
+  const KV_TOKEN = process.env.KV_REST_API_TOKEN;
 
-  if (!UPSTASH_URL || !UPSTASH_TOKEN) {
+  if (!KV_URL || !KV_TOKEN) {
     return res.status(500).json({ error: 'Database environment variables missing' });
   }
 
@@ -10,9 +10,9 @@ export default async function handler(req, res) {
     let cursor = 0;
     let allKeys = [];
     do {
-      const scanRes = await fetch(UPSTASH_URL, {
+      const scanRes = await fetch(KV_URL, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
+        headers: { 'Authorization': `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
         body: JSON.stringify(['SCAN', cursor, 'MATCH', 'reg:*', 'COUNT', 500])
       });
       const scanResult = await scanRes.json();
@@ -26,9 +26,9 @@ export default async function handler(req, res) {
       return res.status(200).json({});
     }
 
-    const mgetRes = await fetch(UPSTASH_URL, {
+    const mgetRes = await fetch(KV_URL, {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${UPSTASH_TOKEN}`, 'Content-Type': 'application/json' },
+      headers: { 'Authorization': `Bearer ${KV_TOKEN}`, 'Content-Type': 'application/json' },
       body: JSON.stringify(['MGET', ...allKeys])
     });
     const mgetResult = await mgetRes.json();
