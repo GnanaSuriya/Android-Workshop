@@ -117,15 +117,8 @@ function generateRegId() {
 //  or as a fallback the ID alone is encoded.
 // ============================================================
 function buildVerifyUrl(reg) {
-  // Build an absolute URL to verify.html relative to current page
-  const base = window.location.href.replace(/[^/]*$/, '');
-  const verifyBase = base + 'verify.html';
-  // Embed reg data as base64 fragment so verify.html can read it without a server
-  const payload = btoa(JSON.stringify({
-    id:   reg.id,
-    name: reg.name,
-  }));
-  return `${verifyBase}#${encodeURIComponent(payload)}`;
+  const base = window.location.origin;
+  return `${base}/verify/${reg.id}`;
 }
 
 // ============================================================
@@ -200,7 +193,7 @@ function navigate(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const el = document.getElementById('screen-pass');
     if (el) { el.classList.add('active'); window.scrollTo({ top: 0 }); }
-    setTimeout(() => renderQR('qr-pass', buildVerifyUrl(state.registration), 200), 60);
+    setTimeout(() => renderQR('qr-pass', buildVerifyUrl(state.registration), 120), 60);
     return;
   }
 

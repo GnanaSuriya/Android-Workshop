@@ -393,6 +393,11 @@ function markAttendance(id) {
 //  PARSE HASH FRAGMENT TO GET REG ID
 // ──────────────────────────────────────────────
 function parseRegId() {
+  // Try path like /verify/REG-1234
+  const pathParts = window.location.pathname.split('/');
+  const lastPart = pathParts[pathParts.length - 1];
+  if (/^REG-/i.test(lastPart)) return lastPart.toUpperCase();
+
   const hash = window.location.hash.replace('#', '');
   if (!hash) return null;
 
