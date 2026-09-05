@@ -17,12 +17,12 @@ export function generateRegId(): string {
 export function extractId(raw: string): string {
   const trimmed = raw.trim();
   const upper = trimmed.toUpperCase();
-  if (upper.startsWith("REG-")) {
-      return upper.substring(0, 14);
-  }
-  const regMatch = upper.match(/REG-[A-Z0-9]{4,10}/i);
+  
+  // Look for the strict pattern REG- followed by alphanumeric characters
+  const regMatch = upper.match(/REG-[A-Z0-9]{4,12}/i);
   if (regMatch) {
       return regMatch[0].toUpperCase();
   }
+  
   return upper;
 }

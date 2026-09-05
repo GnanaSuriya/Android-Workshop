@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AuroraBackground } from '../components/AuroraBackground';
 import { GlassCard } from '../components/GlassCard';
@@ -16,6 +16,7 @@ export default function CoordinatorScreen() {
   const [registrations, setRegistrations] = useState<ParticipantRegistration[]>([]);
   const [validationResult, setValidationResult] = useState<AttendanceValidationResult | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const isScanningRef = useRef(false);
 
   const loadData = () => {
     setRegistrations(db.getRegistrations());
@@ -78,6 +79,8 @@ export default function CoordinatorScreen() {
                     <div className="rounded-xl overflow-hidden bg-black border-2 border-glass-border aspect-square relative flex items-center justify-center">
                       <Scanner 
                         onScan={(result) => {
+                          if (isScanningRef.current) return;
+
                           let scannedVal = '';
                           if (Array.isArray(result) && result.length > 0) {
                             scannedVal = result[0].rawValue;
@@ -88,8 +91,14 @@ export default function CoordinatorScreen() {
                           }
                           
                           if (scannedVal) {
+                            isScanningRef.current = true;
                             handleValidate(scannedVal);
                             setActiveTab('manual');
+                            
+                            // Reset the lock after a short delay to allow future scans
+                            setTimeout(() => {
+                              isScanningRef.current = false;
+                            }, 1500);
                           }
                         }} 
                         onError={(error: any) => {
