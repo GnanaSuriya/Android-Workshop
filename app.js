@@ -907,7 +907,7 @@ function init() {
     btn.innerHTML = `<span class="spinner"></span>&nbsp;Processing…`;
     btn.disabled = true;
 
-    setTimeout(() => {
+    setTimeout(async () => {
       const reg = {
         id:           generateRegId(),
         name:         document.getElementById('f-name').value.trim(),
