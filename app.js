@@ -53,38 +53,42 @@ function icon(name, size = 16) {
 //  DATA LAYER (localStorage)
 // ============================================================
 const DB = {
-  _key: 'androidclub_v2',
-
-  getAll() {
-    try { return JSON.parse(localStorage.getItem(this._key) || '{}'); }
-    catch { return {}; }
+  async getAll() {
+    try {
+      const res = await fetch('/api/list-registrations');
+      return await res.json();
+    } catch { return {}; }
   },
 
-  save(data) {
-    localStorage.setItem(this._key, JSON.stringify(data));
+  async register(participant) {
+    await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(participant)
+    });
   },
 
-  register(participant) {
-    const all = this.getAll();
-    all[participant.id] = participant;
-    this.save(all);
-  },
-
-  getById(id) {
+  async getById(id) {
     if (!id) return null;
-    return this.getAll()[id.trim().toUpperCase()] || null;
+    try {
+      const res = await fetch('/api/get-registration?id=' + encodeURIComponent(id.trim().toUpperCase()));
+      if (!res.ok) return null;
+      return await res.json();
+    } catch { return null; }
   },
 
-  markAttendance(id) {
-    const all  = this.getAll();
-    const upper = id.trim().toUpperCase();
-    if (!all[upper]) return { ok: false, reason: 'not_found' };
-    if (all[upper].checkedIn) return { ok: false, reason: 'duplicate', participant: all[upper] };
-    all[upper].checkedIn    = true;
-    all[upper].checkInTime  = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
-    this.save(all);
-    return { ok: true, participant: all[upper] };
-  },
+  async markAttendance(id) {
+    try {
+      const res = await fetch('/api/mark-attendance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id.trim().toUpperCase() })
+      });
+      return await res.json();
+    } catch {
+      return { ok: false, reason: 'error', id };
+    }
+  }
 };
 
 // ============================================================
@@ -496,8 +500,8 @@ function buildPass(reg) {
 }
 
 // ─── COORDINATOR ───
-function buildRegListInner() {
-  const items = Object.values(DB.getAll());
+async function buildRegListInner() {
+  const items = Object.values(await DB.getAll());
   if (items.length === 0) return `<div id="reg-list" class="reg-list"><div style="color:var(--text-secondary);font-size:13px;text-align:center;padding:20px 0;">No registrations yet.</div></div>`;
   return `<div id="reg-list" class="reg-list">${items.map(r => `
     <div class="reg-list-item ${r.checkedIn ? 'checked-in' : ''}" onclick="validateFromList('${escHtml(r.id)}')">
@@ -569,7 +573,7 @@ function buildCoordinator() {
         <div class="glass-card scan-card">
           <div class="scan-title">All Registrations</div>
           <p class="scan-desc">${Object.keys(DB.getAll()).length} registered. Tap any to validate.</p>
-          ${buildRegListInner()}
+          <div id="list-container"><div style="text-align:center;padding:20px;color:var(--text-secondary);">Loading registrations...</div></div>
         </div>
       </div>
 
@@ -671,7 +675,7 @@ function buildAttendanceResult(result) {
 // ============================================================
 //  COORDINATOR TAB SWITCHING
 // ============================================================
-function switchCoordTab(tab) {
+async function switchCoordTab(tab) {
   state.coordinatorTab = tab;
   ['scan', 'manual', 'list'].forEach(t => {
     const btn   = document.getElementById('tab-' + t);
@@ -679,6 +683,14 @@ function switchCoordTab(tab) {
     if (btn)   btn.classList.toggle('active', t === tab);
     if (panel) panel.style.display = t === tab ? 'block' : 'none';
   });
+  
+  if (tab === 'list') {
+    const container = document.getElementById('list-container');
+    if (container) {
+      container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-secondary);">Loading registrations...</div>';
+      container.innerHTML = await buildRegListInner();
+    }
+  }
   if (tab === 'scan') startCamera(); else stopCamera();
 }
 
@@ -769,8 +781,9 @@ function processQrData(raw) {
   handleValidation(id);
 }
 
-function handleValidation(id) {
-  const result = DB.markAttendance(id);
+async function handleValidation(id) {
+  _showAttendanceResult({ type: 'loading' });
+  const result = await DB.markAttendance(id);
   let attendanceResult;
   if (result.ok) {
     attendanceResult = { type: 'success', participant: result.participant };
@@ -886,7 +899,7 @@ function init() {
   app.innerHTML = buildLanding() + buildForm();
 
   // Form submit
-  document.getElementById('reg-form').addEventListener('submit', function(e) {
+  document.getElementById('reg-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     if (!validateForm()) return;
 
@@ -908,7 +921,7 @@ function init() {
         registeredAt: new Date().toISOString(),
       };
 
-      DB.register(reg);
+      await DB.register(reg);
       state.registration = reg;
 
       // Remove old screens if any
