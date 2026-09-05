@@ -6,6 +6,7 @@ import { db } from '../store';
 import { ParticipantRegistration, AttendanceValidationResult } from '../types';
 import { ArrowLeft, ScanLine, Keyboard, Users, Search, CheckCircle2, AlertTriangle, XCircle, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Scanner } from '@yudiel/react-qr-scanner';
 
 export default function CoordinatorScreen() {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ export default function CoordinatorScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [registrations, setRegistrations] = useState<ParticipantRegistration[]>([]);
   const [validationResult, setValidationResult] = useState<AttendanceValidationResult | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
   const loadData = () => {
     setRegistrations(db.getRegistrations());
@@ -70,14 +72,45 @@ export default function CoordinatorScreen() {
           <AnimatePresence mode="wait">
             {activeTab === 'scan' && (
               <motion.div key="scan" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 h-[60dvh] flex flex-col items-center justify-center">
-                <GlassCard className="w-full text-center border-dashed border-2 p-10 border-glass-border">
-                  <ScanLine size={48} className="mx-auto text-text-label mb-4" />
-                  <h3 className="text-[16px] font-bold text-text-primary mb-2">Camera Unavailable</h3>
-                  <p className="text-[13px] text-text-secondary mb-6">Web preview does not support direct QR scanning. Use Manual Entry.</p>
-                  <button onClick={() => setActiveTab('manual')} className="px-6 py-[10px] bg-glass-bg border border-glass-border rounded-full text-text-primary text-[12px] font-bold tracking-[1px] uppercase">
-                    Switch to Manual
-                  </button>
-                </GlassCard>
+                {!cameraError ? (
+                  <GlassCard className="w-full text-center border-glass-border p-4 relative">
+                    <h3 className="text-[16px] font-bold text-text-primary mb-4">Scan QR Pass</h3>
+                    <div className="rounded-xl overflow-hidden bg-black border-2 border-glass-border aspect-square relative flex items-center justify-center">
+                      <Scanner 
+                        onScan={(result) => {
+                          let scannedVal = '';
+                          if (Array.isArray(result) && result.length > 0) {
+                            scannedVal = result[0].rawValue;
+                          } else if (result && typeof result === 'string') {
+                            scannedVal = result;
+                          } else if (result && typeof (result as any).text === 'string') {
+                            scannedVal = (result as any).text;
+                          }
+                          
+                          if (scannedVal) {
+                            handleValidate(scannedVal);
+                            setActiveTab('manual');
+                          }
+                        }} 
+                        onError={(error: any) => {
+                          // Ignore minor frame errors, catch actual device/permission errors
+                          if (error?.name === 'NotAllowedError' || error?.name === 'NotFoundError' || error?.message?.includes('denied') || error?.message?.includes('requested device not found')) {
+                            setCameraError(error.message || 'Camera access denied or unavailable.');
+                          }
+                        }}
+                      />
+                    </div>
+                  </GlassCard>
+                ) : (
+                  <GlassCard className="w-full text-center border-dashed border-2 p-10 border-glass-border">
+                    <ScanLine size={48} className="mx-auto text-text-label mb-4" />
+                    <h3 className="text-[16px] font-bold text-text-primary mb-2">Camera Unavailable</h3>
+                    <p className="text-[13px] text-text-secondary mb-6">{cameraError}</p>
+                    <button onClick={() => setActiveTab('manual')} className="px-6 py-[10px] bg-glass-bg border border-glass-border rounded-full text-text-primary text-[12px] font-bold tracking-[1px] uppercase">
+                      Switch to Manual
+                    </button>
+                  </GlassCard>
+                )}
               </motion.div>
             )}
 

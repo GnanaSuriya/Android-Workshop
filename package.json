@@ -10,15 +10,16 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@yudiel/react-qr-scanner": "^2.6.0",
+    "clsx": "^2.1.1",
+    "date-fns": "^3.6.0",
+    "framer-motion": "^11.3.31",
+    "lucide-react": "^0.428.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-router-dom": "^6.26.0",
     "react-qr-code": "^2.1.2",
-    "lucide-react": "^0.428.0",
-    "clsx": "^2.1.1",
-    "tailwind-merge": "^2.5.2",
-    "date-fns": "^3.6.0",
-    "framer-motion": "^11.3.31"
+    "react-router-dom": "^6.26.0",
+    "tailwind-merge": "^2.5.2"
   },
   "devDependencies": {
     "@types/react": "^18.3.3",
