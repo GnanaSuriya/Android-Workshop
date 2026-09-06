@@ -33,22 +33,20 @@ export default function RegistrationFormScreen() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (validate()) {
       setIsSubmitting(true);
-      setTimeout(() => {
-        const id = 'REG-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-        addParticipant({
-          id,
-          ...formData,
-          year: formData.year || 'N/A',
-          checkedIn: false,
-          checkInTime: null,
-          registeredAt: new Date().toISOString()
-        });
-        navigate(`/success/${id}`, { replace: true });
-      }, 800);
+      const id = 'REG-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+      await addParticipant({
+        id,
+        ...formData,
+        year: formData.year || 'N/A',
+        checkedIn: false,
+        checkInTime: null,
+        registeredAt: new Date().toISOString()
+      });
+      navigate(`/success/${id}`, { replace: true });
     }
   };
 

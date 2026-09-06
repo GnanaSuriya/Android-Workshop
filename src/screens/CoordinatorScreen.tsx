@@ -23,9 +23,9 @@ export default function CoordinatorScreen() {
     p.college.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleValidate = (id: string) => {
+  const handleValidate = async (id: string) => {
     if (!id.trim()) return;
-    const res = store.markAttendance(id.trim().toUpperCase());
+    const res = await store.markAttendance(id.trim().toUpperCase());
     setValidationResult(res);
     setManualId('');
     if (activeTab === 'scan') setActiveTab('manual');

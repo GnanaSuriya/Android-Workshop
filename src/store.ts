@@ -1,33 +1,45 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
 import { Participant } from './types';
+import { db, collection, doc, setDoc, updateDoc, onSnapshot } from './firebase';
 
 interface AppState {
   participants: Participant[];
-  addParticipant: (p: Participant) => void;
-  markAttendance: (id: string) => { success: boolean; message: string; participant?: Participant };
+  setParticipants: (participants: Participant[]) => void;
+  addParticipant: (p: Participant) => Promise<void>;
+  markAttendance: (id: string) => Promise<{ success: boolean; message: string; participant?: Participant }>;
   getParticipant: (id: string) => Participant | undefined;
 }
 
-export const useStore = create<AppState>()(
-  persist(
-    (set, get) => ({
-      participants: [],
-      addParticipant: (p) => set((state) => ({ participants: [...state.participants, p] })),
-      markAttendance: (id) => {
-        const state = get();
-        const p = state.participants.find(x => x.id === id);
-        if (!p) return { success: false, message: 'Registration not found' };
-        if (p.checkedIn) return { success: false, message: 'Already checked in at ' + p.checkInTime, participant: p };
-        
-        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const updated = { ...p, checkedIn: true, checkInTime: time };
-        
-        set({ participants: state.participants.map(x => x.id === id ? updated : x) });
-        return { success: true, message: 'Check-in successful', participant: updated };
-      },
-      getParticipant: (id) => get().participants.find(x => x.id === id)
-    }),
-    { name: 'workshop-storage' }
-  )
-);
+export const useStore = create<AppState>((set, get) => ({
+  participants: [],
+  setParticipants: (participants) => set({ participants }),
+  addParticipant: async (p) => {
+    // Write to Firestore
+    await setDoc(doc(db, 'participants', p.id), p);
+  },
+  markAttendance: async (id) => {
+    const state = get();
+    const p = state.participants.find(x => x.id === id);
+    if (!p) return { success: false, message: 'Registration not found' };
+    if (p.checkedIn) return { success: false, message: 'Already checked in at ' + p.checkInTime, participant: p };
+    
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const updated = { ...p, checkedIn: true, checkInTime: time };
+    
+    // Write to Firestore
+    await updateDoc(doc(db, 'participants', id), {
+      checkedIn: true,
+      checkInTime: time
+    });
+    
+    return { success: true, message: 'Check-in successful', participant: updated };
+  },
+  getParticipant: (id) => get().participants.find(x => x.id === id)
+}));
+
+// Setup Firestore listener
+const participantsRef = collection(db, 'participants');
+onSnapshot(participantsRef, (snapshot) => {
+  const participants = snapshot.docs.map(doc => doc.data() as Participant);
+  useStore.getState().setParticipants(participants);
+});
