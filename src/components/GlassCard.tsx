@@ -1,18 +1,25 @@
-import { ReactNode } from "react";
-import { cn } from "../lib/utils";
+import React from 'react';
+import { cn } from '../lib/utils';
 
-interface GlassCardProps {
-  children: ReactNode;
+export const GlassCard = ({
+  className,
+  children,
+  onClick,
+}: {
   className?: string;
-}
-
-export function GlassCard({ children, className }: GlassCardProps) {
+  children: React.ReactNode;
+  onClick?: () => void;
+}) => {
   return (
-    <div className={cn(
-      "bg-glass-bg border border-glass-border rounded-[22px] p-4",
-      className
-    )}>
+    <div
+      onClick={onClick}
+      className={cn(
+        "rounded-[24px] bg-white/5 border border-white/10 p-6 backdrop-blur-md",
+        onClick && "cursor-pointer hover:bg-white/10 transition-colors",
+        className
+      )}
+    >
       {children}
     </div>
   );
-}
+};

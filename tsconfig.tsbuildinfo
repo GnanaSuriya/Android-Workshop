@@ -1,0 +1,1 @@
+{"root":["./src/App.tsx","./src/main.tsx","./src/store.ts","./src/types.ts","./src/components/AuroraBackground.tsx","./src/components/GlassCard.tsx","./src/lib/utils.ts","./src/screens/CoordinatorScreen.tsx","./src/screens/DigitalPassScreen.tsx","./src/screens/LandingScreen.tsx","./src/screens/RegistrationFormScreen.tsx","./src/screens/SuccessScreen.tsx"],"version":"5.9.3"}
