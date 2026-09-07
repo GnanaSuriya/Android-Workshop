@@ -3,5 +3,8 @@
   "version": "1.0.0",
   "description": "Android Club Workshop Registration System",
   "type": "module",
-  "private": true
+  "private": true,
+  "dependencies": {
+    "firebase": "^12.18.0"
+  }
 }

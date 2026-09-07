@@ -1,3 +1,5 @@
+import { db, doc, setDoc } from './firebase.js';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ success: false, error: 'Method Not Allowed' });
@@ -9,41 +11,13 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Invalid registration data' });
     }
 
-    const KV_URL = process.env.UPSTASH_REDIS_REST_URL;
-    const KV_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
-
-    if (!KV_URL || !KV_TOKEN) {
-      return res.status(500).json({ success: false, error: 'Registration service unavailable' });
-    }
-
     const payload = { id, name, email, phone, college, department, year, checkedIn: false, checkInTime: null, registeredAt };
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 8000);
-
-    const response = await fetch(KV_URL, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${KV_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(['SET', `reg:${id}`, JSON.stringify(payload)]),
-      signal: controller.signal
-    });
-    
-    clearTimeout(timeout);
-
-    if (!response.ok) {
-      return res.status(500).json({ success: false, error: 'Registration service unavailable' });
-    }
-
-    const result = await response.json();
-    if (result.error) {
-      return res.status(500).json({ success: false, error: 'Registration service unavailable' });
-    }
+    await setDoc(doc(db, 'registrations', id), payload);
 
     return res.status(201).json({ success: true, registration: payload });
   } catch (error) {
+    console.error('Firebase error:', error);
     return res.status(500).json({ success: false, error: 'Registration service unavailable' });
   }
 }
