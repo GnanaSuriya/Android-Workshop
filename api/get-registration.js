@@ -1,14 +1,13 @@
-import { db, doc, getDoc } from './firebase.js';
+import { db } from './firebase.js';
 
 export default async function handler(req, res) {
   const { id } = req.query;
   if (!id) return res.status(400).json({ error: 'Missing ID' });
 
   try {
-    const docRef = doc(db, 'registrations', id);
-    const docSnap = await getDoc(docRef);
+    const docSnap = await db.collection('registrations').doc(id).get();
 
-    if (!docSnap.exists()) {
+    if (!docSnap.exists) {
       return res.status(404).json({ error: 'not_found' });
     }
 

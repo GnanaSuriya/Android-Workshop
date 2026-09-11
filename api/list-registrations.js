@@ -1,4 +1,4 @@
-import { db, collection, getDocs } from './firebase.js';
+import { db } from './firebase.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -6,8 +6,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const registrationsCol = collection(db, 'registrations');
-    const snapshot = await getDocs(registrationsCol);
+    const snapshot = await db.collection('registrations').get();
     const list = snapshot.docs.map(doc => doc.data());
 
     return res.status(200).json({ success: true, count: list.length, registrations: list });

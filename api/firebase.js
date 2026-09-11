@@ -1,16 +1,30 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, getDocs } from 'firebase/firestore';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
 
-const firebaseConfig = {
-  projectId: "googly-way-3lkcn",
-  appId: "1:978553371934:web:45710614169b7a70d81d0f",
-  apiKey: "AIzaSyAtwWhOiT-lW_7lXroIiXcLfsKmFAv7lKg",
-  authDomain: "googly-way-3lkcn.firebaseapp.com",
-  storageBucket: "googly-way-3lkcn.firebasestorage.app",
-  messagingSenderId: "978553371934"
-};
+if (!getApps().length) {
+  let credential;
+  const keyString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+  
+  if (keyString) {
+    try {
+      let parsedKey;
+      try {
+        // Try parsing as raw JSON
+        parsedKey = JSON.parse(keyString);
+      } catch (e) {
+        // Fallback: try decoding Base64 if raw JSON fails
+        const decoded = Buffer.from(keyString, 'base64').toString('utf8');
+        parsedKey = JSON.parse(decoded);
+      }
+      credential = cert(parsedKey);
+    } catch (err) {
+      console.error('Invalid FIREBASE_SERVICE_ACCOUNT_KEY format');
+    }
+  } else {
+    console.warn('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is missing');
+  }
 
-const app = initializeApp(firebaseConfig);
+  initializeApp(credential ? { credential } : undefined);
+}
 
-export const db = getFirestore(app, "ai-studio-androidworkshop-f7b1ebc6-fae8-45ab-aff4-f2529b5e5839");
-export { collection, doc, setDoc, getDoc, updateDoc, getDocs };
+export const db = getFirestore();

@@ -1,4 +1,4 @@
-import { db, doc, setDoc } from './firebase.js';
+import { db } from './firebase.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -13,7 +13,7 @@ export default async function handler(req, res) {
 
     const payload = { id, name, email, phone, college, department, year, checkedIn: false, checkInTime: null, registeredAt };
 
-    await setDoc(doc(db, 'registrations', id), payload);
+    await db.collection('registrations').doc(id).set(payload);
 
     return res.status(201).json({ success: true, registration: payload });
   } catch (error) {

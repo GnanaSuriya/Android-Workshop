@@ -1,4 +1,4 @@
-import { db, doc, getDoc, updateDoc } from './firebase.js';
+import { db } from './firebase.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -11,10 +11,10 @@ export default async function handler(req, res) {
       return res.status(400).json({ success: false, error: 'Missing registration ID' });
     }
 
-    const docRef = doc(db, 'registrations', id);
-    const docSnap = await getDoc(docRef);
+    const docRef = db.collection('registrations').doc(id);
+    const docSnap = await docRef.get();
 
-    if (!docSnap.exists()) {
+    if (!docSnap.exists) {
       return res.status(404).json({ success: false, error: 'Registration not found' });
     }
 
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     }
 
     const checkInTime = new Date().toISOString();
-    await updateDoc(docRef, {
+    await docRef.update({
       checkedIn: true,
       checkInTime: checkInTime
     });
